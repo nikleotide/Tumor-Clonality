@@ -38,11 +38,11 @@ RUN /bin/bash -c "source ~/.bashrc"
 ENV PATH="/PSiTE/:${PATH}"
 
 RUN cd /PSiTE/wes/capgem && make install INSTALL_DIR=./ MXMEM=8000m SERVER=true
-RUN pip3 install pyfaidx
-RUN pip3 install numpy
-RUN pip3 install pyyaml
-RUN pip3 install pysam
-RUN pip3 install snakemake
+RUN pip3 install pyfaidx \
+  numpy \
+  pyyaml \
+  pysam \
+  snakemake
 
 RUN cd /PSiTE && tar -xvzf ms.tar.gz && tar -xvzf artbinchocolatecherrycake03.19.15linux64.tgz
 RUN cd /PSiTE/msdir/ && gcc -o ms ms.c streec.c rand1.c -lm

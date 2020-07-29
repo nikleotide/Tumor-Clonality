@@ -1,0 +1,53 @@
+FROM ubuntu:18.04
+
+
+LABEL authors="Hamid Nikbakht"
+LABEL maintainer="Hamid Nikbakht"
+LABEL version="1.0"
+LABEL description="This Dockerfile includes instructions for creating an image for PSiTE program with all its dependencies. \
+PSiTE program was developed by Yang, H. et al. (2019). Bioinformatics, 35(17), 3148–3150. https://doi.org/10.1093/bioinformatics/btz028"
+
+
+ENV DEBIAN_FRONTEND=noninteractive
+ENV DEBCONF_NONINTERACTIVE_SEEN=true
+
+RUN apt-get update && apt-get install -y \
+  zip \
+  wget \
+  vim \
+  git \
+  less \
+  python3 \
+  python3-pip \
+  default-jre \
+  default-jdk \
+  samtools \
+  gcc
+
+# ms was downloaded from http://home.uchicago.edu/~rhudson1/
+RUN git clone https://github.com/hchyang/PSiTE.git /PSiTE/
+COPY . /PSiTE/
+RUN wget http://hgdownload.cse.ucsc.edu/admin/exe/linux.x86_64/faToTwoBit -P /PSiTE/
+RUN wget http://hgdownload.cse.ucsc.edu/admin/exe/linux.x86_64/blat/blat -P /PSiTE/
+RUN wget https://www.niehs.nih.gov/research/resources/assets/docs/artbinchocolatecherrycake03.19.15linux64.tgz -P /PSiTE/
+
+RUN chmod +x /PSiTE/faToTwoBit
+RUN chmod +x /PSiTE/blat
+RUN echo "alias cwl=\"clear;pwd;ls -lt\"" >> ~/.bashrc
+RUN /bin/bash -c "source ~/.bashrc"
+ENV PATH="/PSiTE/:${PATH}"
+
+RUN cd /PSiTE/wes/capgem && make install INSTALL_DIR=./ MXMEM=8000m SERVER=true
+RUN pip3 install pyfaidx
+RUN pip3 install numpy
+RUN pip3 install pyyaml
+RUN pip3 install pysam
+RUN pip3 install snakemake
+
+RUN cd /PSiTE && tar -xvzf ms.tar.gz && tar -xvzf artbinchocolatecherrycake03.19.15linux64.tgz
+RUN cd /PSiTE/msdir/ && gcc -o ms ms.c streec.c rand1.c -lm
+
+
+
+
+ENV PATH="/PSiTE/art_bin_ChocolateCherryCake:./:/PSiTE/./blat:/PSiTE/./faToTwoBit:/PSiTE/msdir/./:${PATH}"
